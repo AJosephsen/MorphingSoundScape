@@ -65,6 +65,58 @@ class ScaleGenerator {
         
         return frequencies;
     }
+
+    // Get chord built on specific scale degree
+    getChordFromDegree(degree, octave = 1) {
+        const scale = SCALES[this.currentScale];
+        const frequencies = [];
+        
+        // Build triad: root, third (skip 1), fifth (skip 2)
+        for (let i = 0; i < 3; i++) {
+            const scaleIndex = (degree + i * 2) % scale.length;
+            const octaveAdjust = Math.floor((degree + i * 2) / scale.length);
+            const semitone = scale[scaleIndex] + (octave + octaveAdjust) * 12;
+            frequencies.push(this.getFrequency(semitone));
+        }
+        
+        return frequencies;
+    }
+
+    // Get notes from a chord that fit the melody range
+    getChordTones(degree, octaveRange = [1, 3]) {
+        const scale = SCALES[this.currentScale];
+        const notes = [];
+        
+        // Get chord tones: root, third, fifth, seventh
+        const chordDegrees = [0, 2, 4, 6].map(offset => (degree + offset) % scale.length);
+        
+        for (let octave = octaveRange[0]; octave <= octaveRange[1]; octave++) {
+            chordDegrees.forEach(scaleIndex => {
+                const semitone = scale[scaleIndex] + octave * 12;
+                notes.push(this.getFrequency(semitone));
+            });
+        }
+        
+        return notes;
+    }
+
+    // Get passing tones (scale tones that aren't chord tones)
+    getPassingTones(degree, octaveRange = [1, 3]) {
+        const scale = SCALES[this.currentScale];
+        const chordDegrees = [0, 2, 4, 6].map(offset => (degree + offset) % scale.length);
+        const passingTones = [];
+        
+        for (let octave = octaveRange[0]; octave <= octaveRange[1]; octave++) {
+            scale.forEach((note, index) => {
+                if (!chordDegrees.includes(index)) {
+                    const semitone = note + octave * 12;
+                    passingTones.push(this.getFrequency(semitone));
+                }
+            });
+        }
+        
+        return passingTones;
+    }
 }
 
 // Export for use in other modules
