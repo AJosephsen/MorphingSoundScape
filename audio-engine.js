@@ -46,6 +46,88 @@ class AudioEngine {
         this.analyser.connect(this.audioContext.destination);
     }
 
+    createWindSwirl(duration, volume = 0.08) {
+        const now = this.audioContext.currentTime;
+        
+        // Create white noise buffer
+        const bufferSize = this.audioContext.sampleRate * duration;
+        const noiseBuffer = this.audioContext.createBuffer(2, bufferSize, this.audioContext.sampleRate);
+        
+        // Fill with stereo white noise
+        for (let channel = 0; channel < 2; channel++) {
+            const data = noiseBuffer.getChannelData(channel);
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+        }
+        
+        const noiseSource = this.audioContext.createBufferSource();
+        noiseSource.buffer = noiseBuffer;
+        
+        // Bandpass filter for wind character
+        const filter = this.audioContext.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.Q.value = 2; // Moderate resonance
+        
+        // LFO for sweeping filter
+        const lfo = this.audioContext.createOscillator();
+        const lfoGain = this.audioContext.createGain();
+        lfo.frequency.value = 0.15 + Math.random() * 0.25; // Slow sweep
+        lfoGain.gain.value = 1200; // Sweep range
+        
+        lfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+        
+        // Set initial filter frequency
+        filter.frequency.value = 400 + Math.random() * 600;
+        
+        // Stereo panner for movement
+        const panner = this.audioContext.createStereoPanner();
+        const panLfo = this.audioContext.createOscillator();
+        const panLfoGain = this.audioContext.createGain();
+        panLfo.frequency.value = 0.1 + Math.random() * 0.15; // Slow pan
+        panLfoGain.gain.value = 0.8; // Pan amount (-0.8 to +0.8)
+        
+        panLfo.connect(panLfoGain);
+        panLfoGain.connect(panner.pan);
+        
+        // Gain envelope
+        const gainNode = this.audioContext.createGain();
+        
+        // Connect: noise -> filter -> panner -> gain -> reverb
+        noiseSource.connect(filter);
+        filter.connect(panner);
+        panner.connect(gainNode);
+        gainNode.connect(this.reverbNode.input);
+        
+        // Swelling envelope
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.gain.linearRampToValueAtTime(volume, now + duration * 0.3); // Swell in
+        gainNode.gain.setValueAtTime(volume * 0.9, now + duration * 0.7);
+        gainNode.gain.linearRampToValueAtTime(0, now + duration); // Fade out
+        
+        // Start everything
+        lfo.start(now);
+        lfo.stop(now + duration);
+        panLfo.start(now);
+        panLfo.stop(now + duration);
+        noiseSource.start(now);
+        noiseSource.stop(now + duration);
+        
+        // Cleanup
+        noiseSource.onended = () => {
+            gainNode.disconnect();
+            filter.disconnect();
+            panner.disconnect();
+            lfoGain.disconnect();
+            panLfoGain.disconnect();
+            noiseSource.disconnect();
+            this.activeSources = this.activeSources.filter(s => s.oscillator !== noiseSource);
+        };
+        
+        this.activeSources.push({ oscillator: noiseSource, gainNode, filterNode: filter });
+    }
+
     async createReverb() {
         const convolver = this.audioContext.createConvolver();
         const reverbGain = this.audioContext.createGain();
@@ -494,6 +576,30 @@ class AudioEngine {
         }
     }
 
+    generateWindSwirls() {
+        if (!this.isPlaying) return;
+        
+        // Wind appears 35% of the time
+        const shouldPlayWind = Math.random() < 0.35;
+        
+        if (shouldPlayWind) {
+            // Variable duration - sometimes short breeze, sometimes long
+            const durationBeats = Math.random() > 0.5 ? 12 : 24; // 12 or 24 beats
+            const duration = (60 / this.params.tempo) * durationBeats;
+            const volume = 0.06 + Math.random() * 0.04; // Subtle
+            
+            this.createWindSwirl(duration, volume);
+            
+            // Wait until this swirl finishes
+            setTimeout(() => this.generateWindSwirls(), duration * 1000);
+        } else {
+            // Pause before next potential wind
+            const waitBeats = 8 + Math.random() * 16; // 8-24 beats
+            const waitTime = (60 / this.params.tempo) * waitBeats;
+            setTimeout(() => this.generateWindSwirls(), waitTime * 1000);
+        }
+    }
+
     start() {
         if (this.isPlaying) return;
         
@@ -506,6 +612,7 @@ class AudioEngine {
         this.generateHarmony();
         this.generateAmbience();
         this.generateBass();
+        this.generateWindSwirls();
     }
 
     stop() {
