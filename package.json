@@ -1,0 +1,21 @@
+{
+  "name": "morphing-soundscape",
+  "version": "1.0.0",
+  "description": "Generative audio music soundscapes in JavaScript using Web Audio API",
+  "main": "main.js",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "dev": "python3 -m http.server 8000"
+  },
+  "keywords": [
+    "generative-music",
+    "web-audio-api",
+    "soundscapes",
+    "ambient",
+    "music",
+    "javascript",
+    "audio-synthesis"
+  ],
+  "author": "",
+  "license": "MIT"
+}

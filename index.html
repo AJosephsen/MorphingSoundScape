@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morphing SoundScape - Generative Music</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Morphing SoundScape</h1>
+            <p>Generative Audio Experience</p>
+        </header>
+
+        <div class="controls">
+            <button id="startBtn" class="btn btn-primary">Start Soundscape</button>
+            <button id="stopBtn" class="btn btn-secondary" disabled>Stop</button>
+        </div>
+
+        <div class="parameters">
+            <div class="param-group">
+                <label for="complexity">Complexity</label>
+                <input type="range" id="complexity" min="1" max="10" value="5">
+                <span id="complexityValue">5</span>
+            </div>
+
+            <div class="param-group">
+                <label for="tempo">Tempo</label>
+                <input type="range" id="tempo" min="60" max="180" value="120">
+                <span id="tempoValue">120</span> BPM
+            </div>
+
+            <div class="param-group">
+                <label for="harmony">Harmonic Density</label>
+                <input type="range" id="harmony" min="1" max="8" value="4">
+                <span id="harmonyValue">4</span>
+            </div>
+
+            <div class="param-group">
+                <label for="reverb">Reverb</label>
+                <input type="range" id="reverb" min="0" max="100" value="30">
+                <span id="reverbValue">30</span>%
+            </div>
+
+            <div class="param-group">
+                <label for="volume">Master Volume</label>
+                <input type="range" id="volume" min="0" max="100" value="70">
+                <span id="volumeValue">70</span>%
+            </div>
+        </div>
+
+        <div class="scales">
+            <h3>Scale Selection</h3>
+            <div class="scale-buttons">
+                <button class="scale-btn active" data-scale="pentatonic">Pentatonic</button>
+                <button class="scale-btn" data-scale="major">Major</button>
+                <button class="scale-btn" data-scale="minor">Minor</button>
+                <button class="scale-btn" data-scale="dorian">Dorian</button>
+                <button class="scale-btn" data-scale="phrygian">Phrygian</button>
+                <button class="scale-btn" data-scale="chromatic">Chromatic</button>
+            </div>
+        </div>
+
+        <div class="visualizer">
+            <canvas id="visualCanvas"></canvas>
+        </div>
+
+        <div class="info">
+            <p>This generative music system creates evolving soundscapes using the Web Audio API.</p>
+            <p>Adjust parameters in real-time to morph the sound.</p>
+        </div>
+    </div>
+
+    <script src="audio-engine.js"></script>
+    <script src="scales.js"></script>
+    <script src="visualizer.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
